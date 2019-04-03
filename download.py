@@ -10,6 +10,13 @@ import io
 import os
 import sys
 import re
+import platform
+import pickle
+import urllib
+import urllib2
+import requests
+import time
+import urlparse
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = 'https://www.googleapis.com/auth/drive'
@@ -24,24 +31,6 @@ def main():
     # now, to clear the screen
     cls()
 
-    print colored(' _______  _______  _______  _______  ___      _______    ______   ______    ___   __   __  _______ ', 'red')
-    print colored('|       ||       ||       ||       ||   |    |       |  |      | |    _ |  |   | |  | |  ||       |', 'red')
-    print colored('|    ___||   _   ||   _   ||    ___||   |    |    ___|  |  _    ||   | ||  |   | |  |_|  ||    ___|', 'red')
-    print colored('|   | __ |  | |  ||  | |  ||   | __ |   |    |   |___   | | |   ||   |_||_ |   | |       ||   |___ ', 'yellow')
-    print colored('|   ||  ||  |_|  ||  |_|  ||   ||  ||   |___ |    ___|  | |_|   ||    __  ||   | |       ||    ___|', 'yellow')
-    print colored('|   |_| ||       ||       ||   |_| ||       ||   |___   |       ||   |  | ||   |  |     | |   |___ ', 'green')
-    print colored('|_______||_______||_______||_______||_______||_______|  |______| |___|  |_||___|   |___|  |_______|', 'green')
-    print colored('     ______   _______  _     _  __    _  ___      _______  _______  ______   _______  ______       ', 'blue')
-    print colored('    |      | |       || | _ | ||  |  | ||   |    |       ||   _   ||      | |       ||    _ |      ', 'blue')
-    print colored('    |  _    ||   _   || || || ||   |_| ||   |    |   _   ||  |_|  ||  _    ||    ___||   | ||      ', 'magenta')
-    print colored('    | | |   ||  | |  ||       ||       ||   |    |  | |  ||       || | |   ||   |___ |   |_||_     ', 'magenta')
-    print colored('    | |_|   ||  |_|  ||       ||  _    ||   |___ |  |_|  ||       || |_|   ||    ___||    __  |    ', 'cyan')
-    print colored('    |       ||       ||   _   || | |   ||       ||       ||   _   ||       ||   |___ |   |  | |    ', 'cyan')
-    print colored('    |______| |_______||__| |__||_|  |__||_______||_______||__| |__||______| |_______||___|  |_|    ', 'cyan')
-    print colored('===================================================================================================', 'white')
-    print colored('                                         Version: ', 'yellow'), (1.0)
-    print colored('                                         Author : ', 'yellow'), ('Blavk')
-    print colored('                                         Github : ', 'yellow'), ('https://github.com/duytran1406/gdrivedownloader')
     store = file.Storage('token.json')
     creds = store.get()
     if not creds or creds.invalid:
@@ -79,8 +68,10 @@ def main():
         print 'An error occurred: {}'.format(error)
 
 def download_folder(service, folder_id, location, folder_name):
-    if not os.path.exists(location + folder_name):
-        os.makedirs(location + folder_name)
+    folder_path = r"{}{}".format(location, folder_name)
+    print(folder_path)
+    if not os.path.exists(r"{}".format(folder_path)):
+        os.makedirs(r"{}".format(folder_path))
     location += folder_name + '/'
 
     result = []
@@ -105,7 +96,8 @@ def download_folder(service, folder_id, location, folder_name):
         if mime_type == 'application/vnd.google-apps.folder':
             download_folder(service, file_id, location, filename)
         elif not os.path.isfile('{}{}'.format(location, filename)):
-            download_file(service, file_id, location, filename)
+            #download_file(service, file_id, location, filename)
+            get_video(service, file_id, location, filename)
         else:
             remote_size = item[u'size']
             local_size = os.path.getsize('{}{}'.format(location, filename))
@@ -114,11 +106,11 @@ def download_folder(service, folder_id, location, folder_name):
             else:
                 print colored('Local File corrupted', 'red')
                 os.remove('{}{}'.format(location, filename))
-                download_file(service, file_id, location, filename)
+                #download_file(service, file_id, location, filename)
+                get_video(service, file_id, location, filename)
         current += 1
         percent = float((current-1))/float(total)*100
         print colored("%.2f percent completed!" % percent,'green')
-
 
 def download_file(service, file_id, location, filename):
     request = service.files().get_media(fileId=file_id)
@@ -152,6 +144,59 @@ def no_accent_vietnamese(s):
     s = re.sub(u'[Đ]', 'D', s)
     s = re.sub(u'[đ]', 'd', s)
     return s.encode('utf-8')
+def get_video(service, file_id, location, filename):	
+    start = time.clock()
+    cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
+    url = "https://drive.google.com/e/get_video_info?docid=" + file_id
+    opener = urllib2.build_opener()
+    opener.addheaders.append(('Cookie', cookie_string))
+    data = opener.open(url).read()
+    info =  urlparse.parse_qs(data)
+    info = info["fmt_stream_map"][0]
+    paras = info.split('|')
+    downloadLink = ""
+    finalDownloadURL = ""
+    for word in paras:
+        if (word.find("itag=22") != -1):
+            downloadLink = word.split(',')
+    if len(downloadLink) > 0:
+	    finalDownloadURL = downloadLink[0]
+	    print(finalDownloadURL)	
+    else:
+        print("Cannot file download URL:")
+        print(info)
+        return
+
+    print("Download Path:")
+    print('{}{}'.format(location, filename))
+    s = requests.Session()
+    cookies_arr = cookie_string.split(';')
+    for cookie_string in cookies_arr:
+		cookie_arr = cookie_string.split('=')
+		if len(cookie_arr) > 1:
+			s.cookies.set(cookie_arr[0], cookie_arr[1])
+    
+    with s.get(finalDownloadURL, stream=True) as r:
+		r.raise_for_status()
+		total_length = r.headers.get('content-length')
+		dl = 0
+		if total_length is None:
+			with open('{}{}'.format(location, filename), 'wb') as f:
+				for chunk in r.iter_content(chunk_size=2048):
+					if chunk:
+						f.write(chunk)
+		else:
+			with open('{}{}'.format(location, filename), 'wb') as f:
+				for chunk in r.iter_content(chunk_size=2048):
+					if chunk:
+						dl += len(chunk)
+						f.write(chunk)
+						done = 100 * dl / int(total_length)
+						sys.stdout.write("\r[%s%s] %s%%" % ('=' * done, ' ' * (100-done), done))
+    print("")
+    print colored(('%s downloaded!' % filename), 'green')
+    print(time.clock() - start)
+    return
 
 if __name__ == '__main__':
     main()
