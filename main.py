@@ -44,7 +44,6 @@ def main():
 		}
 	)
 
-	
 	options.add_argument('--headless')
 	options.add_argument('--no-sandbox')
 	options.add_argument("--disable-dev-shm-usage")
@@ -82,8 +81,11 @@ def get_video():
 
 	start = time.clock()
 
-	cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
-	videoid = "1rDsfryEXSS-uT8mt9t2Lp7hxf50mpqfH"
+	#cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
+
+	cookie_string = firefox()
+
+	videoid = "1mI4CVGQ0shx7R-k9JLFar5sLLFSRaVJv"
 	url = "https://drive.google.com/e/get_video_info?docid=" + videoid
 
 	opener = urllib2.build_opener()
@@ -101,6 +103,8 @@ def get_video():
 
 	finalDownloadURL = downloadLink[0]
 	print(finalDownloadURL)	
+
+	return
 
 	s = requests.Session()
 	
@@ -146,16 +150,16 @@ def firefox():
 	profile.set_preference("plugin.state.java", 0)
 	profile.set_preference("media.autoplay.enabled", False)
 	
-	profile.set_preference("browser.download.folderList", 2)
-	profile.set_preference("browser.download.manager.showWhenStarting", False)
-	profile.set_preference("browser.download.dir", "D:\\TestDownload")
-	profile.set_preference("browser.helperApps.neverAsk.saveToDisk",
-                           "application/octet-stream"+
-                           ",application/zip"+
-						   ",video/mp4"+
-                           ",application/x-rar-compressed"+
-                           ",application/x-gzip"+
-                           ",application/msword")
+	#profile.set_preference("browser.download.folderList", 2)
+	#profile.set_preference("browser.download.manager.showWhenStarting", False)
+	#profile.set_preference("browser.download.dir", "D:\\TestDownload")
+	#profile.set_preference("browser.helperApps.neverAsk.saveToDisk",
+    #                       "application/octet-stream"+
+    #                       ",application/zip"+
+	#						   ",video/mp4"+
+    #                       ",application/x-rar-compressed"+
+    #                       ",application/x-gzip"+
+    #                       ",application/msword")
 
 	
 	#options.add_argument('--headless')
@@ -179,9 +183,9 @@ def firefox():
 	for cookie in cookies:
 		cookie_string = cookie_string + cookie['name']  + "=" + cookie['value'] + ";"
 
-	print(cookie_string)
+	#print(cookie_string)
 
-	return
+	return cookie_string
 	
 	x = re.search(r'(?<="fmt_stream_map",")(.*)(?="])', driver.page_source.encode('utf-8'))
 	#x = re.search(r'<video(.*)<\/video>', driver.page_source.encode('utf-8'))

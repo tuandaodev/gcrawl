@@ -168,6 +168,8 @@ def get_video(service, file_id, location, filename):
         print(info)
         return
 
+    return
+    
     print("Download Path:")
     print('{}{}'.format(location, filename))
     s = requests.Session()
