@@ -2,8 +2,10 @@ import platform
 import pickle
 import re
 import urllib
+import urllib2
 import requests
 import time
+import urlparse
 
 from flask import Flask
 from flask import request, jsonify
@@ -75,6 +77,25 @@ def main():
     #driver.quit()
     #return source_html	
     # filling the form
+def get_video():	
+	cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
+	videoid = "1rDsfryEXSS-uT8mt9t2Lp7hxf50mpqfH"
+	url = "https://drive.google.com/e/get_video_info?docid=" + videoid
+
+	opener = urllib2.build_opener()
+	opener.addheaders.append(('Cookie', cookie_string))
+	data = opener.open(url).read()
+	info =  urlparse.parse_qs(data)
+	info = info["fmt_stream_map"][0]
+
+	paras = info.split('|')
+
+	downloadLink = ""
+	for word in paras:
+		if (word.find("itag=22") != -1):
+			downloadLink = word.split(',')
+
+	print(downloadLink[0])
 
 def firefox():
 
@@ -82,7 +103,8 @@ def firefox():
 
 	global driver
 
-	url = "https://drive.google.com/file/d/1rDsfryEXSS-uT8mt9t2Lp7hxf50mpqfH/view";
+	videoid = "1rDsfryEXSS-uT8mt9t2Lp7hxf50mpqfH";
+	url = "https://drive.google.com/file/d/" + videoid + "/view";
 
 	profile = webdriver.FirefoxProfile("C:/Users/COMPUTER/AppData/Roaming/Mozilla/Firefox/Profiles/29jgfkms.default")
 	
@@ -114,7 +136,18 @@ def firefox():
 
 	driver = webdriver.Firefox(profile, executable_path = 'D:\geckodriver.exe')
 	
+	#url = "https://drive.google.com/e/get_video_info?docid=" + videoid;
+
 	driver.get(url)
+
+	cookies = driver.get_cookies()
+	cookie_string = ""
+	for cookie in cookies:
+		cookie_string = cookie_string + cookie['name']  + "=" + cookie['value'] + ";"
+
+	print(cookie_string)
+
+	return
 	
 	x = re.search(r'(?<="fmt_stream_map",")(.*)(?="])', driver.page_source.encode('utf-8'))
 	#x = re.search(r'<video(.*)<\/video>', driver.page_source.encode('utf-8'))
@@ -125,16 +158,9 @@ def firefox():
 	
 	print(urlDownload)
 	
-	#testfile = urllib.URLopener()
-	#testfile.retrieve(urlDownload, "lol.mp4")
-	
-	#driver.get(urlDownload)
-	#with open('D:\TestDownload\file.mp4', 'w') as f:
-	#	f.write(driver.page_source)  # write the page source to the file
-	#print("Finished")
-	
 	cookies = driver.get_cookies()
 	s = requests.Session()
+	cookie_string = ""
 	for cookie in cookies:
 		s.cookies.set(cookie['name'], cookie['value'])
 	with s.get(urlDownload, stream=True) as r:
@@ -147,4 +173,5 @@ def firefox():
 	print(time.clock() - start)
 	
 if __name__ == '__main__':
-	firefox()
+	#firefox()
+	get_video()
