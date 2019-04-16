@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os, colorama
 from apiclient import errors
 from colorama import init,Fore,Back,Style
 from termcolor import colored
@@ -146,59 +147,62 @@ def no_accent_vietnamese(s):
     s = re.sub(u':', '-', s)
     return s.encode('utf-8')
 def get_video(service, file_id, location, filename):	
-    start = time.clock()
-    cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
-    url = "https://mail.google.com/e/get_video_info?docid=" + file_id
-    opener = urllib2.build_opener()
-    opener.addheaders.append(('Cookie', cookie_string))
-    data = opener.open(url).read()
-    info =  urlparse.parse_qs(data)
-    info = info["fmt_stream_map"][0]
-    paras = info.split('|')
-    downloadLink = ""
-    finalDownloadURL = ""
-    for word in paras:
-        if (word.find("itag=22") != -1):
-            downloadLink = word.split(',')
-    if len(downloadLink) > 0:
-	    finalDownloadURL = downloadLink[0]
-	    print(finalDownloadURL)	
-    else:
-        print("Cannot file download URL:")
-        print(info)
-        return
+    try:
+        print colored(('Starting Download VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
+        #cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
+        cookie_string = "SID=QQeYOTx0595UAxPCUaFA3Ly2lWAgXaW8WmTcV2QjWNeZvLkT6f6xSnF73hVJ-dB9jAZxmg.;HSID=A3dpNo7IP8mAZ0QOK;SSID=AlL2pKf75PEh83ScG;APISID=zdR9-ZsC8h4X6_8m/A8bhV8cnecRaGC8vO;SAPISID=IxjFWiXFoE0MWqPq/APxdCahun61Fogjum;DRIVE_STREAM=NE87hUDXQbE;1P_JAR=2019-4-16-9;NID=181=FJS102Th6Z-KbSE4yto7O5Vcte1RbTzj9I0gHXn1IlA_1jRiI88oRuZukO_pIbqUy8ziju-XDW7DIvafgY5ervuowCaOXIzc3SARCDCekf6RbCjjIVuxb77vUdXtfSDJUuflSNqHqB0m5D9-AiCXjwI2FNCOtTY5o0jhREngapRtjXlqty3ARbbfWSqgv43T3xjl2oN2rI1XW6yC9Ywl1-bZMrllzlftp-py7LFI1p3BfQKkM4fLceMc1WoxYg;SIDCC=AN0-TYva-6nYYZAMaSYAocujGPF7GUxtQwAQ0ukOP-hvL_JKrYWSiP_hPguuAu0DYkdJnTFcxds;"
+        url = "https://mail.google.com/e/get_video_info?docid=" + file_id
+        opener = urllib2.build_opener()
+        opener.addheaders.append(('Cookie', cookie_string))
+        data = opener.open(url).read()
+        info =  urlparse.parse_qs(data)
+        info = info["fmt_stream_map"][0]
+        paras = info.split('|')
+        downloadLink = ""
+        finalDownloadURL = ""
+        for word in paras:
+            if (word.find("itag=22") != -1):
+                downloadLink = word.split(',')
+        if len(downloadLink) > 0:
+            finalDownloadURL = downloadLink[0]
+            print('Download URL: {}'.format(finalDownloadURL))
+        else:
+            print("Cannot file download URL:")
+            return
 
-    return
-    
-    print("Download Path:")
-    print('{}{}'.format(location, filename))
-    s = requests.Session()
-    cookies_arr = cookie_string.split(';')
-    for cookie_string in cookies_arr:
-		cookie_arr = cookie_string.split('=')
-		if len(cookie_arr) > 1:
-			s.cookies.set(cookie_arr[0], cookie_arr[1])
-    
-    with s.get(finalDownloadURL, stream=True) as r:
-		r.raise_for_status()
-		total_length = r.headers.get('content-length')
-		dl = 0
-		if total_length is None:
-			with open('{}{}'.format(location, filename), 'wb') as f:
-				for chunk in r.iter_content(chunk_size=2048):
-					if chunk:
-						f.write(chunk)
-		else:
-			with open('{}{}'.format(location, filename), 'wb') as f:
+        print("Download Path:")
+        print('{}{}'.format(location, filename))
+        s = requests.Session()
+        cookies_arr = cookie_string.split(';')
+        for cookie_string in cookies_arr:
+            cookie_arr = cookie_string.split('=')
+            if len(cookie_arr) > 1:
+                s.cookies.set(cookie_arr[0], cookie_arr[1])
+        
+        start = time.clock()
+        with s.get(finalDownloadURL, stream=True) as r:
+            r.raise_for_status()
+            total_length = r.headers.get('content-length')
+            dl = 0
+            if total_length is None:
+                with open('{}{}'.format(location, filename), 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=2048):
+                        if chunk:
+                            f.write(chunk)
+            else:
+    			with open('{}{}'.format(location, filename), 'wb') as f:
 				for chunk in r.iter_content(chunk_size=2048):
 					if chunk:
 						dl += len(chunk)
 						f.write(chunk)
 						done = 100 * dl / int(total_length)
 						sys.stdout.write("\r[%s%s] %s%%" % ('=' * done, ' ' * (100-done), done))
-    print("")
-    print colored(('%s downloaded!' % filename), 'green')
-    print(time.clock() - start)
+        print("")
+        print colored(('%s downloaded!' % filename), 'green')
+        print(time.clock() - start)
+    except Exception as e: 
+        print colored(('Error VideoID: {} FileName: {}'.format(file_id, filename)), 'red')
+        print(e)
     return
 
 if __name__ == '__main__':

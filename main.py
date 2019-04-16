@@ -144,8 +144,11 @@ def firefox():
 	videoid = "1rDsfryEXSS-uT8mt9t2Lp7hxf50mpqfH";
 	url = "https://drive.google.com/file/d/" + videoid + "/view";
 
-	profile = webdriver.FirefoxProfile("C:/Users/COMPUTER/AppData/Roaming/Mozilla/Firefox/Profiles/29jgfkms.default")
-	
+	#May Nha
+	#profile = webdriver.FirefoxProfile("C:/Users/COMPUTER/AppData/Roaming/Mozilla/Firefox/Profiles/29jgfkms.default")
+	#May TMA
+	profile = webdriver.FirefoxProfile("C:/Users/DMTUAN/AppData/Roaming/Mozilla/Firefox/Profiles/7narmi87.default-1548039786631")
+
 	profile.set_preference("plugin.state.flash", 0)
 	profile.set_preference("plugin.state.java", 0)
 	profile.set_preference("media.autoplay.enabled", False)
@@ -172,7 +175,7 @@ def firefox():
     #capabilities = DesiredCapabilities.CHROME.copy()
     #capabilities['pageLoadStrategy'] = "none"
 
-	driver = webdriver.Firefox(profile, executable_path = 'D:\geckodriver.exe')
+	driver = webdriver.Firefox(profile, executable_path = 'geckodriver.exe')
 	
 	#url = "https://drive.google.com/e/get_video_info?docid=" + videoid;
 
@@ -183,7 +186,7 @@ def firefox():
 	for cookie in cookies:
 		cookie_string = cookie_string + cookie['name']  + "=" + cookie['value'] + ";"
 
-	#print(cookie_string)
+	print(cookie_string)
 
 	return cookie_string
 	
@@ -211,5 +214,5 @@ def firefox():
 	print(time.clock() - start)
 	
 if __name__ == '__main__':
-	#firefox()
-	get_video()
+	firefox()
+	#get_video()
