@@ -97,8 +97,11 @@ def download_folder(service, folder_id, location, folder_name):
         if mime_type == 'application/vnd.google-apps.folder':
             download_folder(service, file_id, location, filename)
         elif not os.path.isfile('{}{}'.format(location, filename)):
-            #download_file(service, file_id, location, filename)
-            get_video(service, file_id, location, filename)
+            try:
+                download_file(service, file_id, location, filename)
+            except Exception as e: 
+                print colored(('Cannot download by normal way, try to download by special. VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
+                get_video(service, file_id, location, filename)
         else:
             remote_size = item[u'size']
             local_size = os.path.getsize('{}{}'.format(location, filename))
@@ -107,8 +110,11 @@ def download_folder(service, folder_id, location, folder_name):
             else:
                 print colored('Local File corrupted', 'red')
                 os.remove('{}{}'.format(location, filename))
-                #download_file(service, file_id, location, filename)
-                get_video(service, file_id, location, filename)
+                try:
+                    download_file(service, file_id, location, filename)
+                except Exception as e:
+                    print colored(('Cannot download by normal way, try to download by special. VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
+                    get_video(service, file_id, location, filename)
         current += 1
         percent = float((current-1))/float(total)*100
         print colored("%.2f percent completed!" % percent,'green')
@@ -183,6 +189,7 @@ def get_video(service, file_id, location, filename):
         with s.get(finalDownloadURL, stream=True) as r:
             r.raise_for_status()
             total_length = r.headers.get('content-length')
+            print('Total Length: {} MB'.format(total_length/1024))
             dl = 0
             if total_length is None:
                 with open('{}{}'.format(location, filename), 'wb') as f:
