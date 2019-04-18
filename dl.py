@@ -98,6 +98,7 @@ def download_folder(service, folder_id, location, folder_name):
             download_folder(service, file_id, location, filename)
         elif not os.path.isfile('{}{}'.format(location, filename)):
             try:
+                get_video(service, file_id, location, filename)
                 download_file(service, file_id, location, filename)
             except Exception as e: 
                 print colored(('Cannot download by normal way, try to download by special. VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
@@ -108,9 +109,9 @@ def download_folder(service, folder_id, location, folder_name):
             if (str(remote_size) == str(local_size)):
                 print colored('File existed!', 'magenta')
             else:
-                print colored('Local File corrupted', 'red')
+                print colored('API Local File corrupted', 'yellow')
                 print('remote_size: {} <> local_size: {}'.format(remote_size, local_size))
-                os.remove('{}{}'.format(location, filename))
+                #os.remove('{}{}'.format(location, filename))
                 try:
                     download_file(service, file_id, location, filename)
                 except Exception as e:
@@ -191,6 +192,17 @@ def get_video(service, file_id, location, filename):
             r.raise_for_status()
             total_length = r.headers.get('content-length')
             print('Total Length: {} MB'.format(int(total_length)/(1024*1024)))
+
+            if os.path.isfile('{}{}'.format(location, filename)):
+                local_size = os.path.getsize('{}{}'.format(location, filename))
+                if (str(total_length) == str(local_size)):
+                    print colored('TD File existed!', 'magenta')
+                    return
+                else:
+                    print colored('TD Local File corrupted', 'red')
+                    print('total_length: {} <> local_size: {}'.format(total_length, local_size))
+                    #os.remove('{}{}'.format(location, filename))
+
             dl = 0
             if total_length is None:
                 with open('{}{}'.format(location, filename), 'wb') as f:
