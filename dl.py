@@ -7,6 +7,7 @@ from apiclient.http import MediaIoBaseDownload
 from googleapiclient.discovery import build
 from httplib2 import Http
 from oauth2client import file, client, tools
+from concurrent.futures import ThreadPoolExecutor
 import io
 import os
 import sys
@@ -88,38 +89,48 @@ def download_folder(service, folder_id, location, folder_name):
         sys.exit()
     else:
         print colored('START DOWNLOADING', 'yellow')
+
     current = 1
+
+    pool = ThreadPoolExecutor(max_workers=10)
     for item in result:
-        file_id = item[u'id']
-        filename = no_accent_vietnamese(item[u'name'])
-        mime_type = item[u'mimeType']
-        print '- ', colored(filename, 'cyan'), colored(mime_type, 'cyan'), '({}/{})'.format(current, total)
-        if mime_type == 'application/vnd.google-apps.folder':
-            download_folder(service, file_id, location, filename)
-        elif not os.path.isfile('{}{}'.format(location, filename)):
-            try:
-                get_video(service, file_id, location, filename)
-                download_file(service, file_id, location, filename)
-            except Exception as e: 
-                print colored(('Cannot download by normal way, try to download by special. VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
-                get_video(service, file_id, location, filename)
+        #main_download(service, item, location, current, total)
+        pool.submit(main_download, service, item, location, current, total)
+    pool.shutdown(wait=True)
+    print('Folder {} download completed!'.format(folder_name))
+
+def main_download(service, item, location, current, total):
+    file_id = item[u'id']
+    filename = no_accent_vietnamese(item[u'name'])
+    mime_type = item[u'mimeType']
+    print '- ', colored(filename, 'cyan'), colored(mime_type, 'cyan'), '({}/{})'.format(current, total)
+    if mime_type == 'application/vnd.google-apps.folder':
+        download_folder(service, file_id, location, filename)
+    elif not os.path.isfile('{}{}'.format(location, filename)):
+        get_video(service, file_id, location, filename, False)
+        #try:
+        #    download_file(service, file_id, location, filename)
+        #except Exception as e: 
+        #    print colored(('Cannot download by normal way, try to download by special. VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
+        #    get_video(service, file_id, location, filename)
+    else:
+        remote_size = item[u'size']
+        local_size = os.path.getsize('{}{}'.format(location, filename))
+        if (str(remote_size) == str(local_size)):
+            print colored('File existed!', 'magenta')
         else:
-            remote_size = item[u'size']
-            local_size = os.path.getsize('{}{}'.format(location, filename))
-            if (str(remote_size) == str(local_size)):
-                print colored('File existed!', 'magenta')
-            else:
-                print colored('API Local File corrupted', 'yellow')
-                print('remote_size: {} <> local_size: {}'.format(remote_size, local_size))
-                #os.remove('{}{}'.format(location, filename))
-                try:
-                    download_file(service, file_id, location, filename)
-                except Exception as e:
-                    print colored(('Cannot download by normal way, try to download by special. VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
-                    get_video(service, file_id, location, filename)
-        current += 1
-        percent = float((current-1))/float(total)*100
-        print colored("%.2f percent completed!" % percent,'green')
+            print colored('API Local File corrupted', 'yellow')
+            print('API remote_size: {} <> local_size: {}'.format(remote_size, local_size))
+            #os.remove('{}{}'.format(location, filename))
+            get_video(service, file_id, location, filename, True)
+            #try:
+            #    download_file(service, file_id, location, filename)
+            #except Exception as e:
+            #    print colored(('Cannot download by normal way, try to download by special. VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
+            #    get_video(service, file_id, location, filename)
+    current += 1
+    percent = float((current-1))/float(total)*100
+    print colored("%.2f percent completed!" % percent,'green')
 
 def download_file(service, file_id, location, filename):
     request = service.files().get_media(fileId=file_id)
@@ -154,7 +165,7 @@ def no_accent_vietnamese(s):
     s = re.sub(u'[đ]', 'd', s)
     s = re.sub(u':', '-', s)
     return s.encode('utf-8')
-def get_video(service, file_id, location, filename):	
+def get_video(service, file_id, location, filename, is_file):
     try:
         print colored(('Starting Download VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
         #cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
@@ -173,11 +184,12 @@ def get_video(service, file_id, location, filename):
                 downloadLink = word.split(',')
         if len(downloadLink) > 0:
             finalDownloadURL = downloadLink[0]
+            print("")
             print('Download URL: {}'.format(finalDownloadURL))
         else:
             print("Cannot file download URL:")
             return
-
+        print("")
         print("Download Path:")
         print('{}{}'.format(location, filename))
         s = requests.Session()
@@ -192,16 +204,17 @@ def get_video(service, file_id, location, filename):
             r.raise_for_status()
             total_length = r.headers.get('content-length')
             print('Total Length: {} MB'.format(int(total_length)/(1024*1024)))
-
-            if os.path.isfile('{}{}'.format(location, filename)):
-                local_size = os.path.getsize('{}{}'.format(location, filename))
-                if (str(total_length) == str(local_size)):
-                    print colored('TD File existed!', 'magenta')
-                    return
-                else:
-                    print colored('TD Local File corrupted', 'red')
-                    print('total_length: {} <> local_size: {}'.format(total_length, local_size))
-                    #os.remove('{}{}'.format(location, filename))
+            
+            if (is_file is True):
+                if os.path.isfile('{}{}'.format(location, filename)):
+                    local_size = os.path.getsize('{}{}'.format(location, filename))
+                    if (str(total_length) == str(local_size)):
+                        print colored('TD File existed!', 'magenta')
+                        return
+                    else:
+                        os.remove('{}{}'.format(location, filename))
+                        print colored('TD Local File corrupted', 'red')
+                        print('total_length: {}MB <> local_size: {}MB'.format(int(total_length/(1024*1024)), int(local_size/(1024*1024))))
 
             dl = 0
             if total_length is None:
