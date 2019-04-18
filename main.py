@@ -23,7 +23,7 @@ from bs4 import BeautifulSoup
 def main():
 	global driver
 
-	url = "https://drive.google.com/file/d/1rDsfryEXSS-uT8mt9t2Lp7hxf50mpqfH/view";
+	url = "https://drive.google.com/file/d/1rDsfryEXSS-uT8mt9t2Lp7hxf50mpqfH/view"
 
 	options = webdriver.ChromeOptions()
     #options.add_argument("--disable-notifications")
@@ -145,9 +145,9 @@ def firefox():
 	url = "https://drive.google.com/file/d/" + videoid + "/view";
 
 	#May Nha
-	#profile = webdriver.FirefoxProfile("C:/Users/COMPUTER/AppData/Roaming/Mozilla/Firefox/Profiles/29jgfkms.default")
+	profile = webdriver.FirefoxProfile("C:/Users/COMPUTER/AppData/Roaming/Mozilla/Firefox/Profiles/29jgfkms.default")
 	#May TMA
-	profile = webdriver.FirefoxProfile("C:/Users/DMTUAN/AppData/Roaming/Mozilla/Firefox/Profiles/7narmi87.default-1548039786631")
+	#profile = webdriver.FirefoxProfile("C:/Users/DMTUAN/AppData/Roaming/Mozilla/Firefox/Profiles/7narmi87.default-1548039786631")
 
 	profile.set_preference("plugin.state.flash", 0)
 	profile.set_preference("plugin.state.java", 0)

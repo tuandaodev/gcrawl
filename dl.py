@@ -93,7 +93,7 @@ def download_folder(service, folder_id, location, folder_name):
 
     current = 1
 
-    pool = ThreadPoolExecutor(max_workers=20)
+    pool = ThreadPoolExecutor(max_workers=10)
     for item in result:
         #main_download(service, item, location, current, total)
         pool.submit(main_download, service, item, location, current, total)
@@ -170,7 +170,7 @@ def get_video(service, file_id, location, filename, is_file):
     try:
         print colored(('Starting Download VideoID: {} FileName: {}'.format(file_id, filename)), 'green')
         #cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
-        cookie_string = "SID=QQeYOTx0595UAxPCUaFA3Ly2lWAgXaW8WmTcV2QjWNeZvLkT6f6xSnF73hVJ-dB9jAZxmg.;HSID=A3dpNo7IP8mAZ0QOK;SSID=AlL2pKf75PEh83ScG;APISID=zdR9-ZsC8h4X6_8m/A8bhV8cnecRaGC8vO;SAPISID=IxjFWiXFoE0MWqPq/APxdCahun61Fogjum;DRIVE_STREAM=NE87hUDXQbE;1P_JAR=2019-4-16-9;NID=181=FJS102Th6Z-KbSE4yto7O5Vcte1RbTzj9I0gHXn1IlA_1jRiI88oRuZukO_pIbqUy8ziju-XDW7DIvafgY5ervuowCaOXIzc3SARCDCekf6RbCjjIVuxb77vUdXtfSDJUuflSNqHqB0m5D9-AiCXjwI2FNCOtTY5o0jhREngapRtjXlqty3ARbbfWSqgv43T3xjl2oN2rI1XW6yC9Ywl1-bZMrllzlftp-py7LFI1p3BfQKkM4fLceMc1WoxYg;SIDCC=AN0-TYva-6nYYZAMaSYAocujGPF7GUxtQwAQ0ukOP-hvL_JKrYWSiP_hPguuAu0DYkdJnTFcxds;"
+        cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=181=Vz0682gtnOMhlTwVBwpF4Co2nJJsGJGYS9vugjdY7x4B9B4f42aDrIWvM5P3W4GDgVmikgzVRjS8_IDauD19VdBW2Q-uHig6pSOmXOW0g_EetCfOxuDFflHrJZnA9UXU5WrZEz5chUlhw_-arjECqEcqHFXPRsxN9o8zJTalyIHWiXZYDeZcTFHvMMuQLH-u36l6WLMq3hw;DRIVE_STREAM=LGCt4SHW9uc;1P_JAR=2019-4-18-16;SIDCC=AN0-TYuLG_PMbYwL2SYy6zAuj0Ukehw_pOCeRaXkHSFrpsECxrxKekAkEg_dEOURvFSstRS6pQ;"
         url = "https://mail.google.com/e/get_video_info?docid=" + file_id
         opener = urllib2.build_opener()
         opener.addheaders.append(('Cookie', cookie_string))
@@ -233,7 +233,7 @@ def get_video(service, file_id, location, filename, is_file):
                         done = 100 * dl / int(total_length)
                         sys.stdout.write("\r[%s%s] %s%%   %s KBps" % ('=' * done, ' ' * (100-done), done, dl//(1024*(time.clock() - start))))
         print("")
-        print colored(('{} downloaded!'.format(filename), 'green'))
+        print('File {} downloaded!'.format(filename))
 
     except Exception as e:
         print colored(('Error VideoID: {} FileName: {}'.format(file_id, filename)), 'red')
