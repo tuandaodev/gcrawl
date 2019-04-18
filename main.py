@@ -7,7 +7,10 @@ import requests
 import time
 import urlparse
 import sys
+import logging
 
+from colorama import init,Fore,Back,Style
+from termcolor import colored
 from flask import Flask
 from flask import request, jsonify
 from selenium import webdriver
@@ -19,6 +22,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from bs4 import BeautifulSoup
+
+
 
 def main():
 	global driver
@@ -213,6 +218,90 @@ def firefox():
 	print("Finished")
 	print(time.clock() - start)
 	
+def get_video2():
+	try:
+
+		url = "https://drive.google.com/file/d/10qsUf7hYUZCOuv0AdqalQqgHK4ExnvPB/view"
+
+		#cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=180=HDVzHVHRxcTwCCw4F11hv3UahG-v8pKAb9Mi1evmRkg1FzBndzDcdYGKnqU4NPyELxe5NpB4smtxLWRVMXYNiru8rpmDUMwllUhjpeWQWtrz68L1HI4V-zvHN0InAcusMlbij9F_k9Zij3CtHncw0KDb_vCeLLRbPisYZ3zpH6_Co8zXj05kkcKU701rZaHmltbiqNydVQ;DRIVE_STREAM=Csb25Trh83A;1P_JAR=2019-4-3-15;SIDCC=AN0-TYu9m8jJN_PGjDcSLzNfj4ksYqkFAQv8wGeVX0f8-HWPHLUSPfOpw2QIGGrXgqiN5ES2;"
+		cookie_string = "SID=NgeYOTwjofd58AGxXI_7MMEFjofP7_FB163aH9OFQ4uB7AFlpCALhBpsVonNNM3yw3hS1w.;HSID=AwF4AAd1uQ5w3Vea2;SSID=ACpvM-QH8WJebhM8b;APISID=Ky2l7JyC6itSvSyP/AutQup09Kw7MoySLt;SAPISID=nHWlb0yEMtadASbf/A2AAE8NCLnboPu7hh;NID=181=Vz0682gtnOMhlTwVBwpF4Co2nJJsGJGYS9vugjdY7x4B9B4f42aDrIWvM5P3W4GDgVmikgzVRjS8_IDauD19VdBW2Q-uHig6pSOmXOW0g_EetCfOxuDFflHrJZnA9UXU5WrZEz5chUlhw_-arjECqEcqHFXPRsxN9o8zJTalyIHWiXZYDeZcTFHvMMuQLH-u36l6WLMq3hw;DRIVE_STREAM=LGCt4SHW9uc;1P_JAR=2019-4-18-16;SIDCC=AN0-TYuLG_PMbYwL2SYy6zAuj0Ukehw_pOCeRaXkHSFrpsECxrxKekAkEg_dEOURvFSstRS6pQ;";
+		
+		opener = urllib2.build_opener()
+		opener.addheaders.append(('Cookie', cookie_string))
+		data = opener.open(url).read()
+
+		x = re.search(r'(?<="fmt_stream_map",")(.*)(?="])', data)
+		#x = re.search(r'<video(.*)<\/video>', driver.page_source.encode('utf-8'))
+		#x = re.search(r'<video(.*)<\/video>', driver.page_source.encode('utf-8'))
+		y = x.group().decode('unicode_escape')
+		paras = y.split("|")
+
+		downloadLink = ""
+		finalDownloadURL = ""
+		for word in paras:
+			if (word.find("itag=22") != -1):
+				downloadLink = word.split(',')
+		
+		print('Download URL: {}'.format(downloadLink))
+
+		if len(downloadLink) > 0:
+			finalDownloadURL = urlparse.unquote(downloadLink[0])
+		else:
+			print("Cannot file download URL:")
+			return
+		print("Final Download URL: " + finalDownloadURL)
+		return
+		print("Download Path:")
+		print('{}{}'.format(location, filename))
+		s = requests.Session()
+		cookies_arr = cookie_string.split(';')
+		for cookie_string in cookies_arr:
+			cookie_arr = cookie_string.split('=')
+			if len(cookie_arr) > 1:
+				s.cookies.set(cookie_arr[0], cookie_arr[1])
+		
+		start = time.clock()
+		r = s.get(finalDownloadURL, stream=True)
+		print("Download GET Status: " + str(r.status_code))
+		r.raise_for_status()
+		total_length = r.headers.get('content-length')
+		print('Total Length: {} MB'.format(int(total_length)/(1024*1024)))
+		
+		if (is_file is True):
+			if os.path.isfile('{}{}'.format(location, filename)):
+				local_size = os.path.getsize('{}{}'.format(location, filename))
+				if (str(total_length) == str(local_size)):
+					print colored('TD File existed!', 'magenta')
+					return
+				else:
+					os.remove('{}{}'.format(location, filename))
+					print colored('TD Local File corrupted', 'red')
+					print('total_length: {}MB <> local_size: {}MB'.format(int(total_length/(1024*1024)), int(local_size/(1024*1024))))
+
+		dl = 0
+		if total_length is None:
+			with open('{}{}'.format(location, filename), 'wb') as f:
+				for chunk in r.iter_content(chunk_size=2048):
+					if chunk:
+						f.write(chunk)
+		else:
+			with open('{}{}'.format(location, filename), 'wb') as f:
+				for chunk in r.iter_content(chunk_size=2048):
+					if chunk:
+						dl += len(chunk)
+						f.write(chunk)
+						done = 100 * dl / int(total_length)
+						sys.stdout.write("\r[%s%s] %s%%   %s KBps" % ('=' * done, ' ' * (100-done), done, dl//(1024*(time.clock() - start))))
+		print("")
+		print('File {} downloaded!'.format(filename))
+
+	except Exception as e:
+		print colored(('Error VideoID: {} FileName: {}'.format(file_id, filename)), 'red')
+		print e
+		logging.exception("message")
+	return
+
 if __name__ == '__main__':
-	firefox()
+	#firefox()
 	#get_video()
+	get_video2()
