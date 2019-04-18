@@ -109,6 +109,7 @@ def download_folder(service, folder_id, location, folder_name):
                 print colored('File existed!', 'magenta')
             else:
                 print colored('Local File corrupted', 'red')
+                print('remote_size: {} <> local_size: {}'.format(remote_size, local_size))
                 os.remove('{}{}'.format(location, filename))
                 try:
                     download_file(service, file_id, location, filename)
@@ -127,9 +128,9 @@ def download_file(service, file_id, location, filename):
     while done is False:
         status, done = downloader.next_chunk()
         if status:
-            #print '\rDownload {}%.'.format(int(status.progress() * 100)),
+            print '\rDownload {}%.'.format(int(status.progress() * 100)),
             print int(status.progress() * 100)," percent complete         \r",
-            #sys.stdout.flush()
+            sys.stdout.flush()
     print ""
     print colored(('%s downloaded!' % filename), 'green')
 def cls():
@@ -189,7 +190,7 @@ def get_video(service, file_id, location, filename):
         with s.get(finalDownloadURL, stream=True) as r:
             r.raise_for_status()
             total_length = r.headers.get('content-length')
-            print('Total Length: {} MB'.format(total_length/1024))
+            print('Total Length: {} MB'.format(int(total_length)/(1024*1024)))
             dl = 0
             if total_length is None:
                 with open('{}{}'.format(location, filename), 'wb') as f:
@@ -203,13 +204,12 @@ def get_video(service, file_id, location, filename):
 						dl += len(chunk)
 						f.write(chunk)
 						done = 100 * dl / int(total_length)
-						sys.stdout.write("\r[%s%s] %s%%" % ('=' * done, ' ' * (100-done), done))
+						sys.stdout.write("\r[%s%s] %s%%   %s KBps" % ('=' * done, ' ' * (100-done), done, dl//(1024*(time.clock() - start))))
         print("")
-        print colored(('%s downloaded!' % filename), 'green')
-        print(time.clock() - start)
-    except Exception as e: 
+        print colored(('{} downloaded in {}s!'.format(filename, time.clock() - start), 'green'))
+    except Exception as e:
         print colored(('Error VideoID: {} FileName: {}'.format(file_id, filename)), 'red')
-        print(e)
+        print e
     return
 
 if __name__ == '__main__':
