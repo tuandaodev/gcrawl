@@ -19,6 +19,7 @@ import urllib2
 import requests
 import time
 import urlparse
+import logging
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = 'https://www.googleapis.com/auth/drive'
@@ -92,7 +93,7 @@ def download_folder(service, folder_id, location, folder_name):
 
     current = 1
 
-    pool = ThreadPoolExecutor(max_workers=10)
+    pool = ThreadPoolExecutor(max_workers=20)
     for item in result:
         #main_download(service, item, location, current, total)
         pool.submit(main_download, service, item, location, current, total)
@@ -200,41 +201,44 @@ def get_video(service, file_id, location, filename, is_file):
                 s.cookies.set(cookie_arr[0], cookie_arr[1])
         
         start = time.clock()
-        with s.get(finalDownloadURL, stream=True) as r:
-            r.raise_for_status()
-            total_length = r.headers.get('content-length')
-            print('Total Length: {} MB'.format(int(total_length)/(1024*1024)))
-            
-            if (is_file is True):
-                if os.path.isfile('{}{}'.format(location, filename)):
-                    local_size = os.path.getsize('{}{}'.format(location, filename))
-                    if (str(total_length) == str(local_size)):
-                        print colored('TD File existed!', 'magenta')
-                        return
-                    else:
-                        os.remove('{}{}'.format(location, filename))
-                        print colored('TD Local File corrupted', 'red')
-                        print('total_length: {}MB <> local_size: {}MB'.format(int(total_length/(1024*1024)), int(local_size/(1024*1024))))
+        r = s.get(finalDownloadURL, stream=True)
+        print("Download GET Status: " + str(r.status_code))
+        r.raise_for_status()
+        total_length = r.headers.get('content-length')
+        print('Total Length: {} MB'.format(int(total_length)/(1024*1024)))
+        
+        if (is_file is True):
+            if os.path.isfile('{}{}'.format(location, filename)):
+                local_size = os.path.getsize('{}{}'.format(location, filename))
+                if (str(total_length) == str(local_size)):
+                    print colored('TD File existed!', 'magenta')
+                    return
+                else:
+                    os.remove('{}{}'.format(location, filename))
+                    print colored('TD Local File corrupted', 'red')
+                    print('total_length: {}MB <> local_size: {}MB'.format(int(total_length/(1024*1024)), int(local_size/(1024*1024))))
 
-            dl = 0
-            if total_length is None:
-                with open('{}{}'.format(location, filename), 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=2048):
-                        if chunk:
-                            f.write(chunk)
-            else:
-    			with open('{}{}'.format(location, filename), 'wb') as f:
-				for chunk in r.iter_content(chunk_size=2048):
-					if chunk:
-						dl += len(chunk)
-						f.write(chunk)
-						done = 100 * dl / int(total_length)
-						sys.stdout.write("\r[%s%s] %s%%   %s KBps" % ('=' * done, ' ' * (100-done), done, dl//(1024*(time.clock() - start))))
+        dl = 0
+        if total_length is None:
+            with open('{}{}'.format(location, filename), 'wb') as f:
+                for chunk in r.iter_content(chunk_size=2048):
+                    if chunk:
+                        f.write(chunk)
+        else:
+            with open('{}{}'.format(location, filename), 'wb') as f:
+                for chunk in r.iter_content(chunk_size=2048):
+                    if chunk:
+                        dl += len(chunk)
+                        f.write(chunk)
+                        done = 100 * dl / int(total_length)
+                        sys.stdout.write("\r[%s%s] %s%%   %s KBps" % ('=' * done, ' ' * (100-done), done, dl//(1024*(time.clock() - start))))
         print("")
         print colored(('{} downloaded!'.format(filename), 'green'))
+
     except Exception as e:
         print colored(('Error VideoID: {} FileName: {}'.format(file_id, filename)), 'red')
         print e
+        logging.exception("message")
     return
 
 if __name__ == '__main__':
