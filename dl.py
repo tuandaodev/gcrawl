@@ -93,10 +93,10 @@ def download_folder(service, folder_id, location, folder_name):
 
     current = 1
 
-    pool = ThreadPoolExecutor(max_workers=10)
+    pool = ThreadPoolExecutor(max_workers=3)
     for item in result:
-        #main_download(service, item, location, current, total)
-        pool.submit(main_download, service, item, location, current, total)
+        main_download(service, item, location, current, total)
+        #pool.submit(main_download, service, item, location, current, total)
     pool.shutdown(wait=True)
     print('Folder {} download completed!'.format(folder_name))
 
@@ -117,7 +117,7 @@ def main_download(service, item, location, current, total):
     else:
         remote_size = item[u'size']
         local_size = os.path.getsize('{}{}'.format(location, filename))
-        if (str(remote_size) == str(local_size)):
+        if (str(remote_size) == str(local_size) or int(remote_size/4) > int(local_size)):
             print colored('File existed!', 'magenta')
         else:
             print colored('API Local File corrupted', 'yellow')
@@ -176,8 +176,21 @@ def get_video(service, file_id, location, filename, is_file):
         opener.addheaders.append(('Cookie', cookie_string))
         data = opener.open(url).read()
         info =  urlparse.parse_qs(data)
-        info = info["fmt_stream_map"][0]
-        paras = info.split('|')
+
+        try:
+            
+            if (info["status"][0] == "fail"):
+                print colored('Error get_video_info: Khong the phat video. Co loi xay ra. Chi Tiet:', 'red')
+                print info["reason"][0]
+                return
+
+            info = info["fmt_stream_map"][0]
+            paras = info.split('|')
+        except Exception as e:
+            print colored(('Error Read get_video_info VideoID: {} FileName: {}'.format(file_id, filename)), 'red')
+            logging.exception("message")
+            return
+
         downloadLink = ""
         finalDownloadURL = ""
         for word in paras:
